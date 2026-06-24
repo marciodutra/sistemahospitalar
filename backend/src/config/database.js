@@ -18,4 +18,7 @@ async function connectDatabase() {
     }
 }
 
-module.exports = { pool, connectDatabase };
+module.exports = {
+    query: (text, params) => pool.query(text, params),
+    connectDatabase
+};
