@@ -189,13 +189,44 @@ export default function Appointments() {
                   <td>{a.id}</td>
                   <td>{a.patient_name}</td>
                   <td>{a.doctor_name}</td>
+
                   <td>
-                    {new Date(a.appointment_date).toLocaleString()}
+                    {new Date(a.appointment_date).toLocaleString("pt-BR")}
                   </td>
-                  <td>{a.status}</td>
+
                   <td>
-                    <button onClick={() => updateStatus(a.id, "done")}>
-                      OK
+                    {a.status === "scheduled" && (
+                      <span className="badge bg-warning text-dark">
+                        Agendada
+                      </span>
+                    )}
+
+                    {a.status === "done" && (
+                      <span className="badge bg-success">
+                        Concluída
+                      </span>
+                    )}
+
+                    {a.status === "canceled" && (
+                      <span className="badge bg-danger">
+                        Cancelada
+                      </span>
+                    )}
+                  </td>
+
+                  <td>
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={() => updateStatus(a.id, "done")}
+                    >
+                      Concluir
+                    </button>
+
+                    <button
+                      className="btn btn-danger btn-sm ms-2"
+                      onClick={() => updateStatus(a.id, "canceled")}
+                    >
+                      Cancelar
                     </button>
                   </td>
                 </tr>
