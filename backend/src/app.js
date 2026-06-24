@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const authRoutes = require("./routes/authRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/patients", patientRoutes);
 app.use("/doctors", doctorRoutes)
+app.use("/appointments", appointmentRoutes);
 
 // Rota teste
 app.get("/", (req, res) => {

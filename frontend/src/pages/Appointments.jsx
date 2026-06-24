@@ -1,3 +1,211 @@
+import { useEffect, useState } from "react";
+import api from "../services/api";
+import Select from "react-select";
+
 export default function Appointments() {
-  return <h1>Consultas</h1>;
+  const [appointments, setAppointments] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+
+  const [patientId, setPatientId] = useState("");
+  const [doctorId, setDoctorId] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [showForm, setShowForm] = useState(false);
+
+  // 🔥 APPS
+  async function loadAppointments() {
+    try {
+      const res = await api.get("/appointments");
+      setAppointments(res.data || []);
+    } catch (err) {
+      console.error("appointments error:", err);
+    }
+  }
+
+  async function loadPatients() {
+    try {
+      const res = await api.get("/patients");
+      setPatients(res.data || []);
+    } catch (err) {
+      console.error("patients error:", err);
+    }
+  }
+
+  async function loadDoctors() {
+    try {
+      const res = await api.get("/doctors");
+      setDoctors(res.data || []);
+    } catch (err) {
+      console.error("doctors error:", err);
+    }
+  }
+
+  useEffect(() => {
+    loadAppointments();
+    loadPatients();
+    loadDoctors();
+  }, []);
+
+  async function createAppointment(e) {
+    e.preventDefault();
+
+    try {
+      await api.post("/appointments", {
+        patient_id: patientId,
+        doctor_id: doctorId,
+        appointment_date: appointmentDate,
+        status: "scheduled",
+      });
+
+      setPatientId("");
+      setDoctorId("");
+      setAppointmentDate("");
+      setShowForm(false);
+
+      loadAppointments();
+    } catch (err) {
+      console.error("create error:", err);
+    }
+  }
+
+  async function deleteAppointment(id) {
+    try {
+      await api.delete(`/appointments/${id}`);
+      loadAppointments();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function updateStatus(id, status) {
+    try {
+      await api.put(`/appointments/${id}`, { status });
+      loadAppointments();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const patientOptions = patients.map((p) => ({
+    value: p.id,
+    label: p.name,
+  }));
+
+  const doctorOptions = doctors.map((d) => ({
+    value: d.id,
+    label: d.name,
+  }));
+
+  return (
+    <div className="container-fluid">
+
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold">📅 Consultas</h2>
+          <p className="text-muted mb-0">
+            Gerencie os agendamentos do hospital
+          </p>
+        </div>
+
+        <button
+          className="btn btn-primary"
+          onClick={() => setShowForm(!showForm)}
+        >
+          + Nova Consulta
+        </button>
+      </div>
+
+      {/* FORM */}
+      {showForm && (
+        <div className="card shadow-sm border-0 mb-4">
+          <div className="card-header bg-white">
+            <h5 className="mb-0">Nova Consulta</h5>
+          </div>
+
+          <div className="card-body">
+            <form onSubmit={createAppointment}>
+              <div className="row">
+
+                <div className="col-md-4">
+                  <label>Paciente</label>
+                  <Select
+                    options={patientOptions}
+                    onChange={(s) => setPatientId(s?.value || "")}
+                  />
+                </div>
+
+                <div className="col-md-4">
+                  <label>Médico</label>
+                  <Select
+                    options={doctorOptions}
+                    onChange={(s) => setDoctorId(s?.value || "")}
+                  />
+                </div>
+
+                <div className="col-md-4">
+                  <label>Data</label>
+                  <input
+                    type="datetime-local"
+                    className="form-control"
+                    value={appointmentDate}
+                    onChange={(e) => setAppointmentDate(e.target.value)}
+                  />
+                </div>
+
+              </div>
+
+              <button className="btn btn-success mt-3">
+                Salvar
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TABLE */}
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white">
+          Lista de Consultas
+        </div>
+
+        <div className="card-body p-0">
+          <table className="table table-hover mb-0">
+
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Data</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {appointments.map((a) => (
+                <tr key={a.id}>
+                  <td>{a.id}</td>
+                  <td>{a.patient_name}</td>
+                  <td>{a.doctor_name}</td>
+                  <td>
+                    {new Date(a.appointment_date).toLocaleString()}
+                  </td>
+                  <td>{a.status}</td>
+                  <td>
+                    <button onClick={() => updateStatus(a.id, "done")}>
+                      OK
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+
+    </div>
+  );
 }

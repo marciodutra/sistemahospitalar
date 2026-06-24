@@ -15,10 +15,30 @@ export default function Login() {
         password,
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const { token, user } = res.data;
 
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // 🔥 REDIRECIONAMENTO POR PERFIL
+      if (user.role === "admin") {
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      if (user.role === "doctor") {
+        window.location.href = "/doctor";
+        return;
+      }
+
+      if (user.role === "patient") {
+        window.location.href = "/patient";
+        return;
+      }
+
+      // fallback
       window.location.href = "/dashboard";
+
     } catch (err) {
       setError(err.response?.data?.error || "Erro no login");
     }
