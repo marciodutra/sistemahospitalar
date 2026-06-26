@@ -3,22 +3,17 @@ const router = express.Router();
 
 const controller = require("../controllers/appointmentController");
 const auth = require("../middlewares/authMiddleware");
-const role = require("../middlewares/roleMiddleware");
-console.log("auth:", typeof auth);
-console.log("role:", typeof role);
-console.log("controller:", controller);
-console.log("create:", typeof controller.createAppointment);
 
-// todos logados
+// LISTAR (todos logados, mas filtrado no controller)
 router.get("/", auth, controller.getAllAppointments);
 
-// admin cria consulta
-router.post("/", auth, role("admin"), controller.createAppointment);
+// CRIAR (admin e doctor)
+router.post("/", auth, controller.createAppointment);
 
-// admin altera status
-router.put("/:id", auth, role("admin"), controller.updateAppointment);
+// ATUALIZAR (admin e doctor)
+router.put("/:id", auth, controller.updateAppointment);
 
-// admin deleta
-router.delete("/:id", auth, role("admin"), controller.deleteAppointment);
+// DELETAR (só admin será validado no controller)
+router.delete("/:id", auth, controller.deleteAppointment);
 
 module.exports = router;

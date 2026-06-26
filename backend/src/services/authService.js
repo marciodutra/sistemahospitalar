@@ -1,10 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const db = require("../config/database");
+const { pool } = require("../config/database");
 
 async function login(email, password) {
   try {
-    const result = await db.query(
+    const result = await pool.query(
       "SELECT * FROM users WHERE email = $1",
       [email]
     );
@@ -24,11 +24,15 @@ async function login(email, password) {
     const token = jwt.sign(
       {
         id: user.id,
+        name: user.name,
         role: user.role,
-        name: user.name
+        doctor_id: user.doctor_id,
+        patient_id: user.patient_id,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      {
+        expiresIn: "1d",
+      }
     );
 
     return {
@@ -36,16 +40,17 @@ async function login(email, password) {
       user: {
         id: user.id,
         name: user.name,
-        role: user.role
-      }
+        role: user.role,
+        doctor_id: user.doctor_id,
+        patient_id: user.patient_id,
+      },
     };
 
   } catch (err) {
-    // repassa erro corretamente pro controller
     throw err;
   }
 }
 
 module.exports = {
-  login
+  login,
 };

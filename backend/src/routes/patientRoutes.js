@@ -2,20 +2,25 @@ const express = require("express");
 const router = express.Router();
 
 const patientController = require("../controllers/patientController");
+const auth = require("../middlewares/auth");
+const role = require("../middlewares/role");
 
-// Listar todos os pacientes
+// todas rotas precisam login
+router.use(auth);
+
+// LISTAR
 router.get("/", patientController.getAllPatients);
 
-// Buscar paciente por ID
+// BUSCAR
 router.get("/:id", patientController.getPatientById);
 
-// Criar paciente
-router.post("/", patientController.createPatient);
+// CRIAR → só ADMIN
+router.post("/", role("ADMIN"), patientController.createPatient);
 
-// Atualizar paciente
+// UPDATE → ADMIN ou paciente (controle já está no controller)
 router.put("/:id", patientController.updatePatient);
 
-// Deletar paciente
-router.delete("/:id", patientController.deletePatient);
+// DELETE → só ADMIN
+router.delete("/:id", role("ADMIN"), patientController.deletePatient);
 
 module.exports = router;

@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 
 export default function Patients() {
-  const [patients, setPatients] = useState([]);
+
+  const [patients, setPatients] = useState([]); // ❗ FALTAVA ISSO
 
   const [name, setName] = useState("");
   const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
 
   const [editingId, setEditingId] = useState(null);
 
@@ -27,15 +29,26 @@ export default function Patients() {
 
     try {
       if (editingId) {
-        await api.put(`/patients/${editingId}`, { name, cpf });
+        await api.put(`/patients/${editingId}`, {
+          name,
+          cpf,
+          email
+        });
       } else {
-        await api.post("/patients", { name, cpf });
+        await api.post("/patients", {
+          name,
+          cpf,
+          email
+        });
       }
 
       setName("");
       setCpf("");
+      setEmail("");
       setEditingId(null);
+
       loadPatients();
+
     } catch (err) {
       console.log(err);
     }
@@ -44,6 +57,7 @@ export default function Patients() {
   function editPatient(p) {
     setName(p.name);
     setCpf(p.cpf);
+    setEmail(p.email); // ❗ CORRETO
     setEditingId(p.id);
   }
 
@@ -71,7 +85,7 @@ export default function Patients() {
 
           <form onSubmit={handleSubmit} className="row g-3">
 
-            <div className="col-md-6">
+            <div className="col-md-4">
               <input
                 className="form-control"
                 placeholder="Nome do paciente"
@@ -89,7 +103,16 @@ export default function Patients() {
               />
             </div>
 
-            <div className="col-md-2 d-grid">
+            <div className="col-md-4">
+              <input
+                className="form-control"
+                placeholder="E-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="col-md-12 d-grid">
               <button className="btn btn-primary">
                 {editingId ? "Atualizar" : "Salvar"}
               </button>
@@ -116,17 +139,18 @@ export default function Patients() {
                 <th>ID</th>
                 <th>Nome</th>
                 <th>CPF</th>
-                <th width="200">Ações</th>
+                <th>Email</th>
+                <th>Ações</th>
               </tr>
             </thead>
 
             <tbody>
-
               {patients.map((p) => (
                 <tr key={p.id}>
                   <td>{p.id}</td>
                   <td>{p.name}</td>
                   <td>{p.cpf}</td>
+                  <td>{p.email}</td>
 
                   <td>
                     <button
@@ -146,7 +170,6 @@ export default function Patients() {
 
                 </tr>
               ))}
-
             </tbody>
 
           </table>

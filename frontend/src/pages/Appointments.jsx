@@ -12,7 +12,9 @@ export default function Appointments() {
   const [appointmentDate, setAppointmentDate] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  // 🔥 APPS
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // ---------------- LISTAR CONSULTAS ----------------
   async function loadAppointments() {
     try {
       const res = await api.get("/appointments");
@@ -22,8 +24,11 @@ export default function Appointments() {
     }
   }
 
+  // ---------------- PACIENTES (só ADMIN) ----------------
   async function loadPatients() {
     try {
+      if (user?.role !== "ADMIN") return;
+
       const res = await api.get("/patients");
       setPatients(res.data || []);
     } catch (err) {
@@ -31,6 +36,7 @@ export default function Appointments() {
     }
   }
 
+  // ---------------- MÉDICOS (liberado) ----------------
   async function loadDoctors() {
     try {
       const res = await api.get("/doctors");
@@ -46,14 +52,19 @@ export default function Appointments() {
     loadDoctors();
   }, []);
 
+  // ---------------- CRIAR CONSULTA ----------------
   async function createAppointment(e) {
     e.preventDefault();
 
     try {
       await api.post("/appointments", {
-        patient_id: patientId,
+        patient_id:
+          user?.role === "PATIENT" ? user.patient_id : patientId,
+
         doctor_id: doctorId,
+
         appointment_date: appointmentDate,
+
         status: "scheduled",
       });
 
@@ -68,15 +79,7 @@ export default function Appointments() {
     }
   }
 
-  async function deleteAppointment(id) {
-    try {
-      await api.delete(`/appointments/${id}`);
-      loadAppointments();
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
+  // ---------------- STATUS ----------------
   async function updateStatus(id, status) {
     try {
       await api.put(`/appointments/${id}`, { status });
@@ -86,6 +89,7 @@ export default function Appointments() {
     }
   }
 
+  // ---------------- OPTIONS ----------------
   const patientOptions = patients.map((p) => ({
     value: p.id,
     label: p.name,
@@ -93,7 +97,7 @@ export default function Appointments() {
 
   const doctorOptions = doctors.map((d) => ({
     value: d.id,
-    label: d.name,
+    label: `${d.name} - ${d.specialty}`,
   }));
 
   return (
@@ -127,13 +131,16 @@ export default function Appointments() {
             <form onSubmit={createAppointment}>
               <div className="row">
 
-                <div className="col-md-4">
-                  <label>Paciente</label>
-                  <Select
-                    options={patientOptions}
-                    onChange={(s) => setPatientId(s?.value || "")}
-                  />
-                </div>
+                {/* PACIENTE só ADMIN */}
+                {user?.role === "ADMIN" && (
+                  <div className="col-md-4">
+                    <label>Paciente</label>
+                    <Select
+                      options={patientOptions}
+                      onChange={(s) => setPatientId(s?.value || "")}
+                    />
+                  </div>
+                )}
 
                 <div className="col-md-4">
                   <label>Médico</label>
@@ -177,6 +184,7 @@ export default function Appointments() {
                 <th>ID</th>
                 <th>Paciente</th>
                 <th>Médico</th>
+                <th>Especialidade</th>
                 <th>Data</th>
                 <th>Status</th>
                 <th>Ações</th>
@@ -189,6 +197,7 @@ export default function Appointments() {
                   <td>{a.id}</td>
                   <td>{a.patient_name}</td>
                   <td>{a.doctor_name}</td>
+                  <td>{a.doctor_specialty}</td>
 
                   <td>
                     {new Date(a.appointment_date).toLocaleString("pt-BR")}

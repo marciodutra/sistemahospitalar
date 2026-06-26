@@ -3,14 +3,21 @@ import api from "../services/api";
 
 export default function Doctors() {
   const [doctors, setDoctors] = useState([]);
+
   const [name, setName] = useState("");
   const [crm, setCrm] = useState("");
   const [specialty, setSpecialty] = useState("");
+  const [email, setEmail] = useState("");
+
   const [editingId, setEditingId] = useState(null);
 
   async function loadDoctors() {
-    const res = await api.get("/doctors");
-    setDoctors(res.data);
+    try {
+      const res = await api.get("/doctors");
+      setDoctors(res.data);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   useEffect(() => {
@@ -20,50 +27,68 @@ export default function Doctors() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (editingId) {
-      await api.put(`/doctors/${editingId}`, {
-        name,
-        crm,
-        specialty
-      });
-    } else {
-      await api.post("/doctors", {
-        name,
-        crm,
-        specialty
-      });
+    try {
+      if (editingId) {
+        await api.put(`/doctors/${editingId}`, {
+          name,
+          crm,
+          specialty,
+          email,
+        });
+      } else {
+        await api.post("/doctors", {
+          name,
+          crm,
+          specialty,
+          email,
+        });
+      }
+
+      setName("");
+      setCrm("");
+      setSpecialty("");
+      setEmail("");
+      setEditingId(null);
+
+      loadDoctors();
+    } catch (err) {
+      console.log(err);
     }
-
-    setName("");
-    setCrm("");
-    setSpecialty("");
-    setEditingId(null);
-
-    loadDoctors();
   }
 
   function editDoctor(d) {
     setName(d.name);
     setCrm(d.crm);
     setSpecialty(d.specialty);
+    setEmail(d.email || "");
     setEditingId(d.id);
   }
 
   async function deleteDoctor(id) {
-    await api.delete(`/doctors/${id}`);
-    loadDoctors();
+    try {
+      await api.delete(`/doctors/${id}`);
+      loadDoctors();
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
-    <div>
+    <div className="container">
+
       <h2 className="mb-4">🩺 Médicos</h2>
 
       {/* FORM */}
       <div className="card shadow border-0 mb-4">
         <div className="card-body">
-          <form onSubmit={handleSubmit} className="row g-2">
 
-            <div className="col-md-4">
+          <h5 className="mb-3">
+            {editingId ? "Editar Médico" : "Novo Médico"}
+          </h5>
+
+          <form onSubmit={handleSubmit} className="row g-3">
+
+            <div className="col-md-3">
               <input
                 className="form-control"
                 placeholder="Nome"
@@ -72,7 +97,7 @@ export default function Doctors() {
               />
             </div>
 
-            <div className="col-md-3">
+            <div className="col-md-2">
               <input
                 className="form-control"
                 placeholder="CRM"
@@ -90,6 +115,16 @@ export default function Doctors() {
               />
             </div>
 
+            <div className="col-md-2">
+              <input
+                className="form-control"
+                type="email"
+                placeholder="E-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
             <div className="col-md-2 d-grid">
               <button className="btn btn-primary">
                 {editingId ? "Atualizar" : "Salvar"}
@@ -97,31 +132,41 @@ export default function Doctors() {
             </div>
 
           </form>
+
         </div>
       </div>
 
       {/* TABLE */}
       <div className="card shadow border-0">
+        <div className="card-header bg-white">
+          Lista de Médicos
+        </div>
+
         <div className="card-body p-0">
 
-          <table className="table mb-0">
+          <table className="table table-hover mb-0">
+
             <thead className="table-light">
               <tr>
                 <th>ID</th>
                 <th>Nome</th>
                 <th>CRM</th>
                 <th>Especialidade</th>
-                <th>Ações</th>
+                <th>E-mail</th>
+                <th width="180">Ações</th>
               </tr>
             </thead>
 
             <tbody>
+
               {doctors.map((d) => (
                 <tr key={d.id}>
                   <td>{d.id}</td>
                   <td>{d.name}</td>
                   <td>{d.crm}</td>
                   <td>{d.specialty}</td>
+                  <td>{d.email}</td>
+
                   <td>
                     <button
                       className="btn btn-sm btn-warning me-2"
@@ -137,14 +182,17 @@ export default function Doctors() {
                       Excluir
                     </button>
                   </td>
+
                 </tr>
               ))}
+
             </tbody>
 
           </table>
 
         </div>
       </div>
+
     </div>
   );
 }
