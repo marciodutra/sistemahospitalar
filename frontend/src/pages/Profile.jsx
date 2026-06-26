@@ -1,89 +1,96 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../services/api";
 
 export default function Profile() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [data, setData] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (newPassword !== confirmPassword) {
-      return alert("As senhas não conferem.");
-    }
-
-    try {
-      await api.put("/auth/change-password", {
-        currentPassword,
-        newPassword,
-      });
-
-      alert("Senha alterada com sucesso!");
-
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-
-    } catch (err) {
-      alert(err.response?.data?.error || "Erro ao alterar senha.");
-    }
+  async function load() {
+    const res = await api.get("/profile");
+    setData(res.data);
+    setLoading(false);
   }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function save() {
+    await api.put("/profile", {
+      name: data.name,
+      email: data.email,
+    });
+
+    alert("Perfil atualizado!");
+  }
+
+  async function changePassword() {
+    await api.put("/profile/password", {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    });
+
+    alert("Senha alterada!");
+  }
+
+  if (loading) return <p>Carregando...</p>;
 
   return (
     <div className="container">
 
-      <div className="card shadow-sm">
-        <div className="card-header">
-          <h4>Alterar Senha</h4>
-        </div>
+      <h3>Meu Perfil</h3>
 
-        <div className="card-body">
-
-          <form onSubmit={handleSubmit}>
-
-            <div className="mb-3">
-              <label className="form-label">Senha Atual</label>
-              <input
-                type="password"
-                className="form-control"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Nova Senha</label>
-              <input
-                type="password"
-                className="form-control"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label">Confirmar Nova Senha</label>
-              <input
-                type="password"
-                className="form-control"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            <button className="btn btn-primary">
-              Alterar Senha
-            </button>
-
-          </form>
-
-        </div>
+      {/* AVATAR */}
+      <div className="mb-3">
+        <img
+          src={data.avatar || "https://via.placeholder.com/120"}
+          width="120"
+          height="120"
+          style={{ borderRadius: "50%" }}
+        />
       </div>
 
+      <input
+        className="form-control mb-2"
+        value={data.name || ""}
+        onChange={(e) => setData({ ...data, name: e.target.value })}
+      />
+
+      <input
+        className="form-control mb-2"
+        value={data.email || ""}
+        onChange={(e) => setData({ ...data, email: e.target.value })}
+      />
+
+      <button className="btn btn-primary mb-4" onClick={save}>
+        Salvar perfil
+      </button>
+
+      <hr />
+
+      <h5>Senha</h5>
+
+      <input
+        type="password"
+        className="form-control mb-2"
+        placeholder="Senha atual"
+        onChange={(e) =>
+          setData({ ...data, currentPassword: e.target.value })
+        }
+      />
+
+      <input
+        type="password"
+        className="form-control mb-2"
+        placeholder="Nova senha"
+        onChange={(e) =>
+          setData({ ...data, newPassword: e.target.value })
+        }
+      />
+
+      <button className="btn btn-warning" onClick={changePassword}>
+        Alterar senha
+      </button>
     </div>
   );
 }
