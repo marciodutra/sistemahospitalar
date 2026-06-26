@@ -2,10 +2,30 @@ import { Link, useLocation } from "react-router-dom";
 
 export default function Layout({ children }) {
   const location = useLocation();
-
   const user = JSON.parse(localStorage.getItem("user"));
 
   const isActive = (path) => location.pathname === path;
+
+  // 🔥 CONFIG PROFISSIONAL DE PERFIL
+  const roleConfig = {
+    ADMIN: {
+      label: "Administrador",
+      color: "danger",
+    },
+    DOCTOR: {
+      label: "Médico",
+      color: "primary",
+    },
+    PATIENT: {
+      label: "Paciente",
+      color: "success",
+    },
+  };
+
+  const roleInfo = roleConfig[user?.role] || {
+    label: user?.role,
+    color: "secondary",
+  };
 
   return (
     <div className="d-flex">
@@ -82,14 +102,26 @@ export default function Layout({ children }) {
       {/* CONTEÚDO */}
       <div className="flex-grow-1 bg-light">
 
+        {/* TOP BAR */}
         <div className="bg-white shadow-sm p-3 d-flex justify-content-between align-items-center">
+
           <h5 className="mb-0">Sistema Hospitalar</h5>
 
-          <span className="text-muted small">
-            {user?.name} ({user?.role})
-          </span>
+          <div className="d-flex align-items-center gap-2">
+
+            <span className="text-muted small">
+              {user?.name}
+            </span>
+
+            <span className={`badge bg-${roleInfo.color}`}>
+              {roleInfo.label}
+            </span>
+
+          </div>
+
         </div>
 
+        {/* PAGE CONTENT */}
         <div className="p-4">
           {children}
         </div>
