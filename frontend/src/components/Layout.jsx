@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 export default function Layout({ children }) {
   const location = useLocation();
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -54,12 +56,12 @@ export default function Layout({ children }) {
           </Link>
 
           <Link
-            to="/users"
+            to="/profile"
             className={`nav-link text-white p-2 rounded ${
-              isActive("/users") ? "bg-primary" : ""
+              isActive("/profile") ? "bg-primary" : ""
             }`}
           >
-            👥 Usuários
+            🔐 Meu Perfil
           </Link>
 
         </div>
@@ -80,16 +82,14 @@ export default function Layout({ children }) {
       {/* CONTEÚDO */}
       <div className="flex-grow-1 bg-light">
 
-        {/* TOP BAR */}
         <div className="bg-white shadow-sm p-3 d-flex justify-content-between align-items-center">
           <h5 className="mb-0">Sistema Hospitalar</h5>
 
           <span className="text-muted small">
-            usuário logado
+            {user?.name} ({user?.role})
           </span>
         </div>
 
-        {/* PAGE CONTENT */}
         <div className="p-4">
           {children}
         </div>

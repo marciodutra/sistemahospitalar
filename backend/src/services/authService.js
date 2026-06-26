@@ -51,6 +51,39 @@ async function login(email, password) {
   }
 }
 
+async function changePassword(userId, currentPassword, newPassword) {
+
+  const result = await pool.query(
+    "SELECT * FROM users WHERE id = $1",
+    [userId]
+  );
+
+  if (!result.rows.length) {
+    throw new Error("Usuário não encontrado");
+  }
+
+  const user = result.rows[0];
+
+  const passwordMatch = await bcrypt.compare(
+    currentPassword,
+    user.password
+  );
+
+  if (!passwordMatch) {
+    throw new Error("Senha atual incorreta");
+  }
+
+  const hash = await bcrypt.hash(newPassword, 10);
+
+  await pool.query(
+    "UPDATE users SET password = $1 WHERE id = $2",
+    [hash, userId]
+  );
+
+  return true;
+}
+
 module.exports = {
   login,
+  changePassword,
 };

@@ -10,6 +10,7 @@ import Appointments from "./pages/Appointments";
 
 import DoctorDashboard from "./pages/DoctorDashboard";
 import PatientDashboard from "./pages/PatientDashboard";
+import Profile from "./pages/Profile";
 
 function Private({ children }) {
   const user = localStorage.getItem("user");
@@ -79,6 +80,17 @@ export default function App() {
         element={
           <Private>
             <Layout><PatientDashboard /></Layout>
+          </Private>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <Private>
+            <Layout>
+              <Profile />
+            </Layout>
           </Private>
         }
       />

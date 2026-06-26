@@ -184,7 +184,8 @@ exports.createPatient = async (req, res) => {
 
 // UPDATE (corrigido)
 exports.updatePatient = async (req, res) => {
-  try {
+  try {    
+    
     const { role } = req.user;
 
     const { name, cpf, email } = req.body;
@@ -198,8 +199,18 @@ exports.updatePatient = async (req, res) => {
       return res.status(404).json({ error: "Paciente não encontrado" });
     }
 
-    // ADMIN único autorizado aqui (mantido simples e estável)
-    if (role !== "ADMIN") {
+    // pega vínculo real do usuário
+    const user = await pool.query(
+      "SELECT patient_id FROM users WHERE id = $1",
+      [req.user.id]
+    );
+
+    const userPatientId = user.rows[0]?.patient_id;
+
+    const isAdmin = role === "admin" || role === "ADMIN";
+    const isOwner = role === "PATIENT" && Number(userPatientId) === Number(req.params.id);
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ error: "Acesso negado" });
     }
 
